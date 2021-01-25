@@ -62,9 +62,9 @@ golem::use_utils_server()
 rstudioapi::navigateToFile( "dev/02_dev.R" )
 
 # remotes::install_github("satijalab/seurat", ref = "release/4.0.0", lib = .libPaths()[2])
-install.packages('RColorBrewer',lib = .libPaths()[2],dependencies = T)
-library('RColorBrewer',lib.loc=.libPaths()[2])
-remove.packages('reticulate',lib = .libPaths()[2])
+install.packages('shinyjs',lib = .libPaths()[2],dependencies = T)
+library('htmltools',lib.loc=.libPaths()[2])
+remove.packages('shinyjs',lib = .libPaths()[2])
 
 BiocManager::install("ComplexHeatmap",lib=.libPaths()[2],dependencies = T)
 BiocManager::install("shape",lib=.libPaths()[2],dependencies = T)

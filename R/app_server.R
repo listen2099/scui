@@ -26,21 +26,21 @@ app_server <- function( input, output, session ) {
   values <- reactiveValues(my_gene_list = NULL, # none
                            seurat_obj = NULL,
                            def_cate_clu = list(), # cust category
-                           def_gene_list = list('Default Feature List' = ''), # 自定义的基因列表
+                           def_gene_list = list('Default Feature List' = ''), # gene list
                            category_name = NULL, # cust cluster name
-                           heatmap_height = 1, # 
-                           violin_height = 4, # 
+                           heatmap_height = 1,
+                           violin_height = 4,
                            dotplot_height = 1,
-                           if_show_add_gene_list = F, # 
-                           marker_res_save = list(),# 
-                           click_res = list(# 
+                           if_show_add_gene_list = F, 
+                           marker_res_save = list(),
+                           click_res = list(
                              click_category_name = 'str',
                              click_cluster_name = 'str',
                              click_cell_num = 0
                            ),
                            new_obj = NULL,
-                           new_obj_markers = NULL
-                           )
+                           new_obj_markers = NULL,
+                           edit_cluster_name_list = c())
   
   CellBrowserUI_obj1 <- reactive({menuItem("Cell Browser", tabName = "CellBrowser", icon = icon("eye-open", lib = "glyphicon"))})
   CellBrowserUI_obj2 <- reactive({NULL})
@@ -113,8 +113,11 @@ app_server <- function( input, output, session ) {
       values$if_show_add_gene_list <- savevalues()$if_show_add_gene_list
       values$marker_res_save <- savevalues()$marker_res_save
       values$click_res <- savevalues()$click_res
+      values$edit_cluster_name_list <- savevalues()$edit_cluster_name_list
     }
   })
+  
+
   
   plotmodel_obj1 <- reactive({
     fluidRow(
@@ -512,7 +515,8 @@ app_server <- function( input, output, session ) {
       savevalues[['if_show_add_gene_list']] <- values$if_show_add_gene_list
       savevalues[['marker_res_save']] <- values$marker_res_save
       savevalues[['click_res']] <- values$click_res
-
+      savevalues[['edit_cluster_name_list']] <- values$edit_cluster_name_list
+      
       save(
         list = as.character(c(
           'seurat_obj',
@@ -526,40 +530,41 @@ app_server <- function( input, output, session ) {
     }
   )
   
-  output$monitor <- renderPrint({
-    if(!is.null(input$input_pick_category) && input$input_pick_category != "Sample" && ! input$input_pick_category %in% names(values$seurat_obj@reductions)){
-      num <- length(values$def_cate_clu[[input$input_pick_category]])
-      colours_sample <- colorRampPalette(brewer.pal(brewer.pal.info[input$selectcolorforpoints,'maxcolors'],input$selectcolorforpoints))(num)[num:1]
-      names(colours_sample) <- names(values$def_cate_clu[[input$input_pick_category]])
-      
-      myData <- as.data.frame(values$seurat_obj@reductions$umap@cell.embeddings[,1:2])
-      pick <- input$input_pick_cluster_for_def
-      
-      res_myData <- c()
-
-      for (i in 1:length(pick) ) {
-        one_cluster <- pick[i]
-        cell_in_cluster <- as.character(values$def_cate_clu[[input$input_pick_category]][[one_cluster]])
-        temp <- myData[cell_in_cluster,]
-        temp$text <- rownames(temp)
-        temp$key <- paste0(one_cluster,':',rownames(temp))
-        temp$color <- colours_sample[one_cluster]
-        temp$size <- 2.5
-        res_myData <- rbind(res_myData,temp)
-      }
-      
-      clicked_cell <- event_data("plotly_click")
-      
-      unique(res_myData[which( res_myData$key == clicked_cell$key ),])
-    }else{
-      
-    }
-    
-  })
+  # output$monitor <- renderPrint({
+  #   if(!is.null(input$input_pick_category) && input$input_pick_category != "Sample" && ! input$input_pick_category %in% names(values$seurat_obj@reductions)){
+  #     num <- length(values$def_cate_clu[[input$input_pick_category]])
+  #     colours_sample <- colorRampPalette(brewer.pal(brewer.pal.info[input$selectcolorforpoints,'maxcolors'],input$selectcolorforpoints))(num)[num:1]
+  #     names(colours_sample) <- names(values$def_cate_clu[[input$input_pick_category]])
+  #     
+  #     myData <- as.data.frame(values$seurat_obj@reductions$umap@cell.embeddings[,1:2])
+  #     pick <- input$input_pick_cluster_for_def
+  #     
+  #     res_myData <- c()
+  # 
+  #     for (i in 1:length(pick) ) {
+  #       one_cluster <- pick[i]
+  #       cell_in_cluster <- as.character(values$def_cate_clu[[input$input_pick_category]][[one_cluster]])
+  #       temp <- myData[cell_in_cluster,]
+  #       temp$text <- rownames(temp)
+  #       temp$key <- paste0(one_cluster,':',rownames(temp))
+  #       temp$color <- colours_sample[one_cluster]
+  #       temp$size <- 2.5
+  #       res_myData <- rbind(res_myData,temp)
+  #     }
+  #     
+  #     clicked_cell <- event_data("plotly_click")
+  #     
+  #     unique(res_myData[which( res_myData$key == clicked_cell$key ),])
+  #   }else{
+  #     
+  #   }
+  #   
+  # })
   
   output$see_click_cluster <- renderPrint({
-    print(values$def_cate_clu)
-    print(event_data("plotly_selected",priority = "input"))
+    # print(values$def_cate_clu)
+    # print(event_data("plotly_selected",priority = "input"))
+    print(values$edit_cluster_name_list)
   })
   
   ifsplit_obj1 <- reactive({
@@ -591,22 +596,18 @@ app_server <- function( input, output, session ) {
     fluidRow(
       column(width = 6,
              h3(HTML(msg)),
-             style ='padding-left:1px; padding-top:1px'
-      ),
+             style ='padding-left:1px; padding-top:1px'),
       column(width = 4,
              textInput('editclustername','Input a new cluster name as a modification:',width = '100%'),
-             style ='padding-left:1px; padding-top:1px'
-             ),
+             style ='padding-left:1px; padding-top:1px'),
       column(width = 1,
              actionButton('comfirmeditclustername','Confirm!',width = '100%',
                           style = "color: white; background-color: #1f78b4;"),
-             style ='padding-left:1px; padding-top:25px'
-             ),
+             style ='padding-left:1px; padding-top:25px'),
       column(width = 1,
              actionButton('closeeditclustername','Close',width = '100%',
                           style = "color: white; background-color: #e31a1c;"),
-             style ='padding-left:1px; padding-top:25px'
-             ),
+             style ='padding-left:1px; padding-top:25px')
     )
   })
   editnamemodel_obj2 <- reactive({fluidRow()})
@@ -617,28 +618,22 @@ app_server <- function( input, output, session ) {
     fluidRow(
       column(width = 6,
              h3(HTML(msg)),
-             style ='padding-left:1px; padding-top:1px'
-      ),
+             style ='padding-left:1px; padding-top:1px'),
       column(width = 6,
              fluidRow(
                column(width = 8,
                       textInput('editclustername','Input a new cluster name as a modification:',width = '100%'),
-                      style ='padding-left:1px; padding-top:1px'
-                      ),
+                      style ='padding-left:1px; padding-top:1px'),
                column(width = 2,
                       actionButton('comfirmeditclustername','Confirm!',width = '100%',
                                    style = "color: white; background-color: #1f78b4;"),
-                      style ='padding-left:1px; padding-top:25px'
-                      ),
+                      style ='padding-left:1px; padding-top:25px'),
                column(width = 2,
                       actionButton('closeeditclustername','Close',width = '100%',
                                    style = "color: white; background-color: #e31a1c;"),
-                      style ='padding-left:1px; padding-top:25px'
-                      )
+                      style ='padding-left:1px; padding-top:25px')
              ),
-             fluidRow(
-               actionButton('delpickcluster','Delete this cluster!',width = '100%'),
-             )
+             fluidRow(actionButton('delpickcluster','Delete this cluster!',width = '100%'))
       )
     )
   })
@@ -661,14 +656,14 @@ app_server <- function( input, output, session ) {
   })
   observeEvent(input$comfirmeditclustername,{
     if( ! is.null(input$editclustername) && input$editclustername != ''){
-      # editname时 当选择的是自定义的category
+      # editname
       if(!is.null(input$input_pick_category) && input$input_pick_category != "Sample" && ! input$input_pick_category %in% names(values$seurat_obj@reductions)){
         ori_name <- names( values$def_cate_clu[[values$click_res$click_category_name]] )
         ori_name[which(ori_name == values$click_res$click_cluster_name)] <- input$editclustername
         names( values$def_cate_clu[[values$click_res$click_category_name]] ) <- ori_name
       }
       
-      # 当选择的是 seurat category
+      #  seurat category
       if(!is.null(input$input_pick_category) && input$input_pick_category != "Sample" && input$input_pick_category %in% names(values$seurat_obj@reductions)){
         temp <- as.character(Idents(values$seurat_obj))
         temp_levels <- levels(Idents(values$seurat_obj))
@@ -680,9 +675,11 @@ app_server <- function( input, output, session ) {
 
         names(new_ident) <- names(Idents(values$seurat_obj))
         Idents(values$seurat_obj) <- new_ident
+        
+        values$edit_cluster_name_list <- rbind(values$edit_cluster_name_list,c(values$click_res$click_cluster_name,input$editclustername))
       }
       
-      # 当选择的是sample
+      # sample
       if(!is.null(input$input_pick_category) && input$input_pick_category == 'Sample'){
         temp <- as.character(values$seurat_obj@meta.data$orig.ident)
         temp[which(temp == values$click_res$click_cluster_name)] <- input$editclustername
@@ -703,7 +700,7 @@ app_server <- function( input, output, session ) {
       click_cell_num = 0
     )
     
-    # 当选择的是自定义的category
+    # category
     if(!is.null(input$input_pick_category) && input$input_pick_category != "Sample" && ! input$input_pick_category %in% names(values$seurat_obj@reductions)){
       res$click_category_name <- input$input_pick_category
       values$click_res$click_category_name <- input$input_pick_category
@@ -737,7 +734,7 @@ app_server <- function( input, output, session ) {
       values$click_res$click_cell_num <- length(res_myData[which( res_myData$key == clicked_cluster ),'key'])
     }
     
-    # 当选择的是seurat category
+    #  seurat category
     if(!is.null(input$input_pick_category) && input$input_pick_category != "Sample" && input$input_pick_category %in% names(values$seurat_obj@reductions)){
       res$click_category_name <- input$input_pick_category
       values$click_res$click_category_name <- input$input_pick_category
@@ -770,7 +767,7 @@ app_server <- function( input, output, session ) {
       values$click_res$click_cell_num <- length(res_myData[which( res_myData$key == clicked_cluster ),'key'])
     }
     
-    # 当选择的是sample
+    #  sample
     if(!is.null(input$input_pick_category) && input$input_pick_category == 'Sample'){
       res$click_category_name <- input$input_pick_category
       values$click_res$click_category_name <- input$input_pick_category
@@ -983,7 +980,7 @@ app_server <- function( input, output, session ) {
                inputId = "pick_active_feature_list",
                label = "Default Feature List",
                choices = names(values$def_gene_list),
-               selected = NULL,#names(values$def_gene_list)[length(names(values$def_gene_list))],
+               selected = NULL,
                options = list(style = "btn-primary"),
                width = "100%"
              ),
@@ -1283,18 +1280,17 @@ app_server <- function( input, output, session ) {
   findmarkers_res <- reactive({
     req(input$input_ifusemycategory)
     cluster_list <- values$def_cate_clu[[input$input_selectcategoryforgetmarker]]
-    # 拿出细胞
+    # cell
     cells <- as.character(unlist(cluster_list))
     temp_obj <- values$seurat_obj[VariableFeatures(object = values$seurat_obj),cells]
     
-    # 配置group
+    # group
     res <- NULL
     for (i in 1:length(cluster_list)) {
       res <- c(res,rep(names(cluster_list[i]),length(cluster_list[[i]])))
     }
     temp_obj@meta.data[['marker_group']] <- res
     
-    # 给每个
     if(length(cluster_list) >= 2){
       myfindmarker_res <- c()
       for (i in 1:length(cluster_list)) {
@@ -1322,6 +1318,18 @@ app_server <- function( input, output, session ) {
     pick <- as.data.frame(pick)
     is.num <- sapply(pick, is.numeric)
     pick[is.num] <- lapply(pick[is.num], signif, 3)
+    
+    temp_cluster <- as.character(pick$cluster)
+    if(!is.null(values$edit_cluster_name_list)){
+      for (i in 1:length(values$edit_cluster_name_list[,1])) {
+        from <- values$edit_cluster_name_list[i,1]
+        to <- values$edit_cluster_name_list[i,2]
+        temp_cluster[which(temp_cluster == from)] <- to
+      }
+    }
+    
+    pick$cluster <- as.factor(temp_cluster)
+    
     values$marker_res_save[['ori_findmarkers_res']] <- pick
     return(pick)
   })
@@ -1419,8 +1427,6 @@ app_server <- function( input, output, session ) {
       return(NULL)
     }
   })
-  
-  
   
   output$categoryforheatmap <- renderUI({
     options <- NULL
@@ -1529,15 +1535,15 @@ app_server <- function( input, output, session ) {
     # req(input$plotformat, input$plotheight, input$plotwidth)
     data <- values$seurat_obj@assays[[DefaultAssay(values$seurat_obj)]]@data
     features <- NULL # 'Top gene','My gene list'
-    if( input$selecttopormygenelist == 'Top gene' ){ # 如果选择的是top gene
-      if( input$categoryforheatmap == 'Seurat cluster' ){ # 自己的top
+    if( input$selecttopormygenelist == 'Top gene' ){ # top gene
+      if( input$categoryforheatmap == 'Seurat cluster' ){ # top
         features <- values$marker_res_save[['ori_findmarkers_res']] %>% group_by(cluster) %>% top_n(n = as.numeric(input$topnforheatmap), wt = avg_logFC)
         features <- features$gene
-      }else{ # 人为的top
+      }else{ # top
         features <- values$marker_res_save[['findmarkers_res']] %>% group_by(marker_group) %>% top_n(n = as.numeric(input$topnforheatmap), wt = avg_logFC)
         features <- features$gene
       }
-    }else{ # 如果选择的不是top gene
+    }else{ # no top gene
       features <- values$def_gene_list[[pick_gene_list()]]
     }
     values$heatmap_height <- length(features)
@@ -1545,7 +1551,7 @@ app_server <- function( input, output, session ) {
     data <- data[features,]
     
     mat <- matrix(0)
-    if(input$categoryforheatmap == 'Seurat cluster'){ # 按照原版的分类
+    if(input$categoryforheatmap == 'Seurat cluster'){ 
       mat <- matrix(0,
                     nrow = length(features),
                     ncol = length(input$clusterforheatmap))
@@ -1557,7 +1563,7 @@ app_server <- function( input, output, session ) {
         one_cluser_data <- data[,Idents(values$seurat_obj) == one_cluster]
         mat[,i] <- rowMeans(as.matrix(one_cluser_data))
       }
-    }else{ # 按照新的分类
+    }else{ # new cluster
       cluster_list <- values$def_cate_clu[[input$categoryforheatmap]]
       mat <- matrix(0,
                     nrow = length(features),

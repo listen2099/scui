@@ -105,7 +105,7 @@ app_ui <- function(request) {
           # h3("Get started:May include some guide info"),
           # h3(" "),
           # h3(" "),
-          includeMarkdown("./mainpage.md"),
+          includeMarkdown("./README.md"),
           h2("Now, Let't Import Seurat Object Here:"),
           fluidRow(
             mod_import_seurat_obj_ui("SeuratRdataFile", "User data (.Rdata format)")
@@ -327,11 +327,6 @@ app_ui <- function(request) {
             uiOutput('recluster_result')
           )
         ),
-        # 解决重新聚类的问题
-        # 用yong户自定义的细胞，重新聚类
-        # 取子集
-        # 点run
-        # 保存新的对象
         #------------------------------------------------------------------- #
         tabItem(
           tabName = "About",

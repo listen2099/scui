@@ -1,0 +1,28 @@
+Package: scui
+Title: Single-cell analysis user interface
+Version: 1.0.0
+Authors@R: person('Kun', 'Wei', email = 'weikun1@genomics.cn', role = c('cre', 'aut'))
+Description: This is a Shiny APP for single cell visual interaction analysis.
+License: MIT + file LICENSE
+Imports: 
+    config,
+    golem,
+    shiny,
+    Seurat,
+    shinythemes,
+    shinydashboard,
+    shinycssloaders,
+    plotly,
+    shinyWidgets,
+    grDevices,
+    DT,
+    dplyr,
+    htmlwidgets,
+    shinyBS,
+    heatmaply,
+    htmltools,
+    RColorBrewer,
+    shinyjs
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.1

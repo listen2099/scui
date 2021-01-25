@@ -4,7 +4,7 @@ SCUI is an open source software based on MIT license.  We do not guarantee that 
 
 ## Contect
 
-Github issue: 
+Github issues: https://github.com/listen2099/scui/issues
 
 Email: bgi.kwei@gmail.com
 

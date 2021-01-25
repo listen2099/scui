@@ -23,17 +23,17 @@
 app_server <- function( input, output, session ) {
   obj_list <- mod_import_seurat_obj_server("SeuratRdataFile")
   
-  values <- reactiveValues(my_gene_list = NULL, # 似乎没有用了
+  values <- reactiveValues(my_gene_list = NULL, # none
                            seurat_obj = NULL,
-                           def_cate_clu = list(), # 自定义的分类
+                           def_cate_clu = list(), # cust category
                            def_gene_list = list('Default Feature List' = ''), # 自定义的基因列表
-                           category_name = NULL, # 定义的类别名称
-                           heatmap_height = 1, # 热图一个基因的高度单位
-                           violin_height = 4, # 小提琴一个基因的高度单位
+                           category_name = NULL, # cust cluster name
+                           heatmap_height = 1, # 
+                           violin_height = 4, # 
                            dotplot_height = 1,
-                           if_show_add_gene_list = F, # 是否展示加基因的框
-                           marker_res_save = list(),# maker gene的保存
-                           click_res = list(# 点击细胞以后的结果保存
+                           if_show_add_gene_list = F, # 
+                           marker_res_save = list(),# 
+                           click_res = list(# 
                              click_category_name = 'str',
                              click_cluster_name = 'str',
                              click_cell_num = 0
@@ -146,7 +146,7 @@ app_server <- function( input, output, session ) {
     print(values$seurat_obj)
   })
 
-  # 按样本分类展示 ***
+  # show cell by sample ***
   cellmap_obj1 <- reactive({
     if(!is.null(input$input_pick_category) && input$input_pick_category == 'Sample'){
       num <- length( unique(values$seurat_obj@meta.data$orig.ident) )
@@ -179,7 +179,7 @@ app_server <- function( input, output, session ) {
     }
   })
 
-  # 按seurat中已有的分类展示 ***
+  # show cell by seurat cluster ***
   cellmap_obj2 <- reactive({
     if(!is.null(input$input_pick_category) && input$input_pick_category != "Sample" && input$input_pick_category %in% names(values$seurat_obj@reductions)){
       num <- length(unique( Idents(values$seurat_obj) ))
@@ -212,7 +212,7 @@ app_server <- function( input, output, session ) {
     }
   })
 
-  # 按某基因的表达量展示
+  # show cell by gene expression
   cellmap_obj3 <- reactive({
     mygenelist <- NULL
     if(!is.null( isolate({input$pick_active_feature_list}) )){
@@ -247,7 +247,7 @@ app_server <- function( input, output, session ) {
     }
   })
 
-  # 按用户定义的类别展示 ***
+  # show cell by custom category ***
   cellmap_obj4 <- reactive({
     if(!is.null(input$input_pick_category) && input$input_pick_category != "Sample" && ! input$input_pick_category %in% names(values$seurat_obj@reductions)){
       num <- length(values$def_cate_clu[[input$input_pick_category]])
@@ -283,7 +283,7 @@ app_server <- function( input, output, session ) {
     }
   })
   
-  # 将细胞split以后展示
+  # show cell by split
   cellmap_obj5 <- reactive({
     if( !is.null(input$ifsplit) && input$ifsplit == T){
       mygenelist <- NULL
@@ -393,7 +393,7 @@ app_server <- function( input, output, session ) {
 
   })
   
-  # 按seurat中已有的分类展示得到表格
+  # get table by seurat cluster 
   celltable_obj2 <- reactive({
     if(!is.null(input$input_pick_category) && input$input_pick_category != "Sample" && input$input_pick_category %in% names(values$seurat_obj@reductions)){
       myData <- as.data.frame(cbind(values$seurat_obj@reductions[[input$input_pick_category]]@cell.embeddings[,1:2]))
@@ -412,7 +412,7 @@ app_server <- function( input, output, session ) {
     }
   })
   
-  # 按用户定义的类别得到表格
+  # get table by custom cluster
   celltable_obj4 <- reactive({
     if(!is.null(input$input_pick_category) && input$input_pick_category != "Sample" && ! input$input_pick_category %in% names(values$seurat_obj@reductions)){
       myData <- as.data.frame(values$seurat_obj@reductions$umap@cell.embeddings[,1:2])
@@ -528,7 +528,6 @@ app_server <- function( input, output, session ) {
   
   output$monitor <- renderPrint({
     if(!is.null(input$input_pick_category) && input$input_pick_category != "Sample" && ! input$input_pick_category %in% names(values$seurat_obj@reductions)){
-      # 选择自定义类的情况下
       num <- length(values$def_cate_clu[[input$input_pick_category]])
       colours_sample <- colorRampPalette(brewer.pal(brewer.pal.info[input$selectcolorforpoints,'maxcolors'],input$selectcolorforpoints))(num)[num:1]
       names(colours_sample) <- names(values$def_cate_clu[[input$input_pick_category]])
@@ -697,7 +696,6 @@ app_server <- function( input, output, session ) {
     output$editnamemodel <- renderUI({editnamemodel_obj2()})
   })
   
-  # 点一下，获得细胞数，cluster名称，category名称
   click_msg_res <- eventReactive(event_data("plotly_click",priority = "event"),{
     res <- list(
       click_category_name = 'str',
@@ -1032,9 +1030,7 @@ app_server <- function( input, output, session ) {
   addgenelisenamemodel_obj2 <- reactive({
     fluidRow()
   })
-  # values$def_gene_list[[input$inputnewgenelistname]]
-  # values$def_gene_list[[input$pick_active_feature_list]]
-  
+
   pick_gene_list <-  reactive({
     input$pick_active_feature_list
   })
@@ -1753,10 +1749,10 @@ app_server <- function( input, output, session ) {
     if(input$selecttopormygenelist_for_violin == "My gene list"){
       pick_features <- input$input_selectviolinfeature
     }else{ # top gene
-      if( input$categoryforviolin == 'Seurat cluster' ){ # 原来类的top基因
+      if( input$categoryforviolin == 'Seurat cluster' ){ 
         pick_features <- values$marker_res_save[['ori_findmarkers_res']] %>% group_by(cluster) %>% top_n(n = as.numeric(input$topnforviolin), wt = avg_logFC)
         pick_features <- pick_features$gene
-      }else{ # 自定义类的top基因
+      }else{ # top gene of custom cluster
         pick_features <- values$marker_res_save[['findmarkers_res']] %>% group_by(marker_group) %>% top_n(n = as.numeric(input$topnforviolin), wt = avg_logFC)
         pick_features <- pick_features$gene
       }
@@ -1777,9 +1773,9 @@ app_server <- function( input, output, session ) {
     
     all_G <- list()
     if("integrated" %in% names(values$seurat_obj@assays)){
-      # 有多样本
+      # mulit sample
       if(input$if_split_sample == F){
-        # 不分割
+        # no split
         for (i in 1:length(pick_features)) {
           feature <- pick_features[i]
           data <- NULL
@@ -1793,23 +1789,16 @@ app_server <- function( input, output, session ) {
               #data$cluster <- factor(as.character(data$cluster),levels = levels(Idents(values$seurat_obj))[which(levels(Idents(values$seurat_obj)) %in% as.character(data$cluster))])
               data$cluster <- factor(as.character(data$cluster),levels = input$clusterforviolin)
               
-          }else{ # 如果使用的是自己定义的category
-            #gene在细胞群内的表达量  #每个细胞的cluster情况 #每个细胞的sample
-            
-            # 得到cluster列表
+          }else{ 
             cluster_list <- values$def_cate_clu[[input$categoryforviolin]]
-            # 得到所有选择的细胞
             cells <- as.character(unlist(cluster_list))
-            # 得到这些细胞的类别
             res <- NULL
             for (i in 1:length(cluster_list)) {
               res <- c(res,rep(names(cluster_list[i]),length(cluster_list[[i]])))
             }
             temp_obj <- values$seurat_obj[,cells]
             exp <- temp_obj@assays[[DefaultAssay(values$seurat_obj)]]@data[feature,]
-            # 得到这些细胞来自哪个sample
             Sample <- temp_obj@meta.data$orig.ident
-            # 得到这些细胞的exp
             data <- data.frame(
               exp = exp,
               cluster = res,
@@ -1836,7 +1825,6 @@ app_server <- function( input, output, session ) {
           all_G[[(length(all_G)+1)]] <- p
         }
       }else if(input$if_split_sample == T){
-        # 分割
         samples <- unique(values$seurat_obj@meta.data$orig.ident)
         all_G <- list()
         for (i in 1:length(pick_features)) {
@@ -1865,9 +1853,7 @@ app_server <- function( input, output, session ) {
             }
             temp_obj <- values$seurat_obj[,cells]
             exp <- temp_obj@assays[[DefaultAssay(values$seurat_obj)]]@data[feature,]
-            # 得到这些细胞来自哪个sample
             Sample <- temp_obj@meta.data$orig.ident
-            # 得到这些细胞的exp
             data <- data.frame(exp = exp,cluster = res,Sample = Sample)
           }
           
@@ -1911,7 +1897,6 @@ app_server <- function( input, output, session ) {
         }
       }
     }else{
-      # 根本就不是多样本
       all_G <- list()
       for (i in 1:length(pick_features)) {
         feature <- pick_features[i]
@@ -1934,9 +1919,7 @@ app_server <- function( input, output, session ) {
           
           temp_obj <- values$seurat_obj[,cells]
           exp <- temp_obj@assays[[DefaultAssay(values$seurat_obj)]]@data[feature,]
-          # 得到这些细胞来自哪个sample
           Sample <- temp_obj@meta.data$orig.ident
-          # 得到这些细胞的exp
           data <- data.frame(
             exp = exp,
             cluster = res,
@@ -2141,10 +2124,10 @@ app_server <- function( input, output, session ) {
     if(input$selecttopormygenelist_for_dotplot == "My gene list"){
       pick_features <- input$input_selectdotplotfeature
     }else{ # top gene
-      if( input$categoryfordotplot == 'Seurat cluster' ){ # 原来类的top基因
+      if( input$categoryfordotplot == 'Seurat cluster' ){ # 
         pick_features <- values$marker_res_save[['ori_findmarkers_res']] %>% group_by(cluster) %>% top_n(n = as.numeric(input$topnfordotplot), wt = avg_logFC)
         pick_features <- pick_features$gene
-      }else{ # 自定义类的top基因
+      }else{ # 
         pick_features <- values$marker_res_save[['findmarkers_res']] %>% group_by(marker_group) %>% top_n(n = as.numeric(input$topnfordotplot), wt = avg_logFC)
         pick_features <- pick_features$gene
       }
@@ -2163,7 +2146,7 @@ app_server <- function( input, output, session ) {
       split.by <- 'orig.ident'
     }
     
-    if(input$categoryfordotplot == 'Seurat cluster'){ # 按照原版的分类
+    if(input$categoryfordotplot == 'Seurat cluster'){ # 
       p <- DotPlot(values$seurat_obj, 
                    assay = DefaultAssay(values$seurat_obj),
                    features = unique(pick_features), 
@@ -2173,15 +2156,9 @@ app_server <- function( input, output, session ) {
                    idents = input$clusterfordotplot,
                    dot.scale = 4) + RotatedAxis()
       return(p)
-    }else{ # 按照自定义的分类
-      # 1按自定义的细胞类型取子集
-      # 2为新的子集设置my——def
-      # groupby mydef
-      # 得到cluster列表
+    }else{ 
       cluster_list <- values$def_cate_clu[[input$categoryfordotplot]]
-      # 得到所有选择的细胞
       cells <- as.character(unlist(cluster_list))
-      # 得到这些细胞的类别
       res <- NULL
       for (i in 1:length(cluster_list)) {
         res <- c(res,rep(names(cluster_list[i]),length(cluster_list[[i]])))
@@ -2203,7 +2180,6 @@ app_server <- function( input, output, session ) {
   })
   
   output$dotplot <- renderPlot({
-    # ggplotly(dotplot_output())
     dotplot_output()
   })
   

@@ -12,3 +12,5 @@ The first version of the SCUI has the following features:
 - **Violin** Generate the violin plot of genes of interest in clusters.
 - **DotPlot** Generate the DotPlot result in Seurat.
 - **Re-clustering** The cells in the customized categories can be reclustered; Output a new seurat object with re-clustering results.
+
+![](image/README/1611648007306.png)

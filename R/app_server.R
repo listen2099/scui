@@ -121,6 +121,7 @@ app_server <- function( input, output, session ) {
   
   plotmodel_obj1 <- reactive({
     fluidRow(
+      uiOutput('selectcolorforpoints'),
       sliderInput("plotheight", "Plot output height (px)",min = 0, max = 2000, value = 500, step = 100),
       sliderInput("plotwidth", "Plot output width (px)",min = 0, max = 2000, value = 500, step = 100),
       radioGroupButtons(inputId = "plotformat",label = "Plot format",choices = c("svg", "png"),
@@ -146,7 +147,8 @@ app_server <- function( input, output, session ) {
   
 
   output$obj_print <- renderPrint({
-    print(values$seurat_obj)
+    print(obj_list()$seurat_obj)
+    #print(values$seurat_obj)
   })
 
   # show cell by sample ***
@@ -561,11 +563,11 @@ app_server <- function( input, output, session ) {
   #   
   # })
   
-  output$see_click_cluster <- renderPrint({
-    # print(values$def_cate_clu)
-    # print(event_data("plotly_selected",priority = "input"))
-    print(values$edit_cluster_name_list)
-  })
+  # output$see_click_cluster <- renderPrint({
+  #   # print(values$def_cate_clu)
+  #   # print(event_data("plotly_selected",priority = "input"))
+  #   print(values$edit_cluster_name_list)
+  # })
   
   ifsplit_obj1 <- reactive({
     fluidRow(
@@ -1183,7 +1185,7 @@ app_server <- function( input, output, session ) {
       inputId = 'selectcolorforpoints',
       label = 'Select color for points:',
       choices =  rownames(brewer.pal.info[brewer.pal.info$category == 'qual',]),
-      selected = NULL,
+      selected = 'Set1',
       selectize = TRUE,
       width = '100%'
     )
@@ -1400,7 +1402,7 @@ app_server <- function( input, output, session ) {
 
   output$selecttopormygenelist <- renderUI({
     options <- NULL
-    if(length(values$def_gene_list[[pick_gene_list()]]) == 0 || values$def_gene_list[[pick_gene_list()]] == ''){
+    if(length(values$def_gene_list[[pick_gene_list()]]) <= 1 || values$def_gene_list[[pick_gene_list()]] == ''){
       options <- 'Top gene'
     }else{
       options <- c( 'Top gene','My gene list' )

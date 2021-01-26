@@ -139,6 +139,7 @@ app_ui <- function(request) {
                    style ='padding-left:1px;padding-top:1px'
             ),
             column(width = 2,
+                   # uiOutput('selectcolorforpoints'),
                    uiOutput('genelistpickmodel'),
                    uiOutput('addgenelisenamemodel'),
                    fluidRow(
@@ -186,20 +187,20 @@ app_ui <- function(request) {
             uiOutput('pick_category_all',inline = T)
           ),
           fluidRow(
-            column(width = 10,
+            column(width = 11,
                    uiOutput('pick_cluster')
                    ),
-            column(width = 2,
-                   uiOutput('selectcolorforpoints')
+            column(width = 1,
+                   uiOutput('output_cell_table_buttom'),
+                   style ='padding-left:1px; padding-right:1px; padding-top:25px'
                    )
-          ),
-          uiOutput('output_cell_table_buttom'),
+          )
           # shinycssloaders::withSpinner(
           #   uiOutput('my_category_edit')
           # ),
-          shinycssloaders::withSpinner(
-            verbatimTextOutput("see_click_cluster")
-          )
+          # shinycssloaders::withSpinner(
+          #   verbatimTextOutput("see_click_cluster")
+          # )
           # shinycssloaders::withSpinner(
           #   verbatimTextOutput("monitor2")
           # )

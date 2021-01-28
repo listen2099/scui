@@ -115,6 +115,7 @@ app_ui <- function(request) {
 <li><strong>DotPlot</strong> Generate the DotPlot result in Seurat.</li>
 <li><strong>Re-clustering</strong> The cells in the customized categories can be reclustered; Output a new seurat object with re-clustering results.</li>
 </ul>
+<p><strong>NOTE:</strong> SCUI requires 4GB ram as a minimum, it may be higher depending on the size of your data. The time elapsed for analysis was influenced by the number of cells.</p>
 '),
           h2("Now, Let't Import Seurat Object Here:"),
           fluidRow(
@@ -194,13 +195,13 @@ app_ui <- function(request) {
                    uiOutput('output_cell_table_buttom'),
                    style ='padding-left:1px; padding-right:1px; padding-top:25px'
                    )
-          )
+          ),
           # shinycssloaders::withSpinner(
           #   uiOutput('my_category_edit')
           # ),
-          # shinycssloaders::withSpinner(
-          #   verbatimTextOutput("see_click_cluster")
-          # )
+          shinycssloaders::withSpinner(
+            verbatimTextOutput("see_click_cluster")
+          )
           # shinycssloaders::withSpinner(
           #   verbatimTextOutput("monitor2")
           # )

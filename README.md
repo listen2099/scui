@@ -14,3 +14,5 @@ The first version of the SCUI has the following features:
 - **Re-clustering** The cells in the customized categories can be reclustered; Output a new seurat object with re-clustering results.
 
 ![](image/README/1611648007306.png)
+
+**NOTE:** SCUI requires 4GB ram as a minimum, it may be higher depending on the size of your data. The time elapsed for analysis was influenced by the number of cells.

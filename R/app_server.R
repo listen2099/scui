@@ -21,6 +21,7 @@
 #' @import shinyjs
 #' @noRd
 app_server <- function( input, output, session ) {
+  
   obj_list <- mod_import_seurat_obj_server("SeuratRdataFile")
   
   values <- reactiveValues(my_gene_list = NULL, # none
@@ -43,7 +44,7 @@ app_server <- function( input, output, session ) {
                            edit_cluster_name_list = c())
   
   CellBrowserUI_obj1 <- reactive({menuItem("Cell Browser", tabName = "CellBrowser", icon = icon("eye-open", lib = "glyphicon"))})
-  CellBrowserUI_obj2 <- reactive({NULL})
+  CellBrowserUI_obj2 <- reactive({fluidRow()})
   observe({
     if(! is.null(values$seurat_obj) ){
       output$CellBrowserUI <- renderMenu({CellBrowserUI_obj1()})
@@ -53,7 +54,7 @@ app_server <- function( input, output, session ) {
   })
 
   FeaturesUI_obj1 <- reactive({menuItem("Features", tabName = "Features" ,icon = icon("list-alt", lib = "glyphicon"))})
-  FeaturesUI_obj2 <- reactive({NULL})
+  FeaturesUI_obj2 <- reactive({fluidRow()})
   observe({
     if(input$tabs == 'CellBrowser'){
       output$FeaturesUI <- renderMenu({FeaturesUI_obj1()}
@@ -63,7 +64,7 @@ app_server <- function( input, output, session ) {
   })
 
   HeatmapUI_obj1 <- reactive({menuItem("Heat Map", tabName = "Heatmap", icon = icon("th", lib = "glyphicon"))})
-  HeatmapUI_obj2 <- reactive({NULL})
+  HeatmapUI_obj2 <- reactive({fluidRow()})
   observe({
     if(input$tabs == 'Features'){output$HeatmapUI <- renderMenu({HeatmapUI_obj1()})}
     else{
@@ -72,7 +73,7 @@ app_server <- function( input, output, session ) {
   })
 
   Violin_obj1 <- reactive({menuItem("Violin", tabName = "Violin", icon = icon("equalizer", lib = "glyphicon"))})
-  Violin_obj2 <- reactive({NULL})
+  Violin_obj2 <- reactive({fluidRow()})
   observe({
     if(input$tabs == 'Heatmap'){output$ViolinUI <- renderMenu({Violin_obj1()})}else{
       output$ViolinUI <- renderMenu({Violin_obj2()})
@@ -80,7 +81,7 @@ app_server <- function( input, output, session ) {
   })
 
   DotPlot_obj1 <- reactive({menuItem("Dot Plot", tabName = "DotPlot", icon = icon("braille", lib = "font-awesome"))})
-  DotPlot_obj2 <- reactive({NULL})
+  DotPlot_obj2 <- reactive({fluidRow()})
   observe({
     if(input$tabs == 'Violin'){output$DotPlotUI <- renderMenu({DotPlot_obj1()})}else{
       output$DotPlotUI <- renderMenu({DotPlot_obj2()})
@@ -88,7 +89,7 @@ app_server <- function( input, output, session ) {
   })
 
   Re_clustering_obj1 <- reactive({menuItem("Re-clustering", tabName = "Re_clustering", icon = icon("laptop-code", lib = "font-awesome"))})
-  Re_clustering_obj2 <- reactive({NULL})
+  Re_clustering_obj2 <- reactive({fluidRow()})
   observe({
     if(length(unlist(values$def_cate_clu)) > 0){
       output$Re_clusteringUI <- renderMenu({Re_clustering_obj1()})
@@ -563,11 +564,12 @@ app_server <- function( input, output, session ) {
   #   
   # })
   
-  # output$see_click_cluster <- renderPrint({
-  #   # print(values$def_cate_clu)
-  #   # print(event_data("plotly_selected",priority = "input"))
-  #   print(values$edit_cluster_name_list)
-  # })
+  output$see_click_cluster <- renderPrint({
+    print(values$def_cate_clu)
+    print(length(unlist(values$def_cate_clu)))
+    # print(event_data("plotly_selected",priority = "input"))
+    # print(values$edit_cluster_name_list)
+  })
   
   ifsplit_obj1 <- reactive({
     fluidRow(
@@ -938,9 +940,35 @@ app_server <- function( input, output, session ) {
   intermodel_ob2 <- reactive({
     fluidRow()
   })
+  intermodel_ob3 <- reactive({
+    fluidRow(
+      h2("Defind your category and cluster"),
+      fluidRow(
+        h3(textOutput("monitor1")),
+        h3("You can do nothing."),
+        style ='padding-left:20px'
+      ),
+      fluidRow(
+        column(
+          width = 12,
+          actionButton(
+            inputId = "closedef",
+            label = "Close",
+            width = '100%',
+            style = "color: white; background-color: #e31a1c;"
+          )
+        )
+      )
+    )
+  })
   
   observeEvent(event_data("plotly_selected",priority = "event"),{
-    output$intermodel <- renderUI({intermodel_ob1()})
+    select_points <- event_data("plotly_selected",priority = "input")
+    if(length(select_points) == 0){
+      output$intermodel <- renderUI({intermodel_ob3()})
+    }else{
+      output$intermodel <- renderUI({intermodel_ob1()})
+    }
     output$editnamemodel <- renderUI({editnamemodel_obj2()})
   })
   
@@ -2331,6 +2359,17 @@ app_server <- function( input, output, session ) {
       )
     }
   )
+  
+  # lib <- .libPaths()[length(.libPaths())]
+  # if(file.exists( paste0(dirname(dirname(lib)),'/FLAGFILE') )){
+  #   file.remove(paste0(dirname(dirname(lib)),'/FLAGFILE'))
+  # }
+  # write.table(c('ok'),file = paste0(dirname(dirname(lib)),'/FLAGFILE'),
+  #             quote = F, row.names = F, col.names = F)
+  # Sys.sleep(4)
+  # if(file.exists( paste0(dirname(dirname(lib)),'/FLAGFILE') )){
+  #   file.remove(paste0(dirname(dirname(lib)),'/FLAGFILE'))
+  # }
 }
 
 

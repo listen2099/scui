@@ -44,7 +44,7 @@ app_server <- function( input, output, session ) {
                            edit_cluster_name_list = c())
   
   CellBrowserUI_obj1 <- reactive({menuItem("Cell Browser", tabName = "CellBrowser", icon = icon("eye-open", lib = "glyphicon"))})
-  CellBrowserUI_obj2 <- reactive({fluidRow()})
+  CellBrowserUI_obj2 <- reactive({NULL})
   observe({
     if(! is.null(values$seurat_obj) ){
       output$CellBrowserUI <- renderMenu({CellBrowserUI_obj1()})
@@ -54,7 +54,7 @@ app_server <- function( input, output, session ) {
   })
 
   FeaturesUI_obj1 <- reactive({menuItem("Features", tabName = "Features" ,icon = icon("list-alt", lib = "glyphicon"))})
-  FeaturesUI_obj2 <- reactive({fluidRow()})
+  FeaturesUI_obj2 <- reactive({NULL})
   observe({
     if(input$tabs == 'CellBrowser'){
       output$FeaturesUI <- renderMenu({FeaturesUI_obj1()}
@@ -64,7 +64,7 @@ app_server <- function( input, output, session ) {
   })
 
   HeatmapUI_obj1 <- reactive({menuItem("Heat Map", tabName = "Heatmap", icon = icon("th", lib = "glyphicon"))})
-  HeatmapUI_obj2 <- reactive({fluidRow()})
+  HeatmapUI_obj2 <- reactive({NULL})
   observe({
     if(input$tabs == 'Features'){output$HeatmapUI <- renderMenu({HeatmapUI_obj1()})}
     else{
@@ -81,7 +81,7 @@ app_server <- function( input, output, session ) {
   })
 
   DotPlot_obj1 <- reactive({menuItem("Dot Plot", tabName = "DotPlot", icon = icon("braille", lib = "font-awesome"))})
-  DotPlot_obj2 <- reactive({fluidRow()})
+  DotPlot_obj2 <- reactive({NULL})
   observe({
     if(input$tabs == 'Violin'){output$DotPlotUI <- renderMenu({DotPlot_obj1()})}else{
       output$DotPlotUI <- renderMenu({DotPlot_obj2()})
@@ -564,12 +564,12 @@ app_server <- function( input, output, session ) {
   #   
   # })
   
-  output$see_click_cluster <- renderPrint({
-    print(values$def_cate_clu)
-    print(length(unlist(values$def_cate_clu)))
-    # print(event_data("plotly_selected",priority = "input"))
-    # print(values$edit_cluster_name_list)
-  })
+  # output$see_click_cluster <- renderPrint({
+  #   # print(values$def_cate_clu)
+  #   # print(length(unlist(values$def_cate_clu)))
+  #   # print(event_data("plotly_selected",priority = "input"))
+  #   # print(values$edit_cluster_name_list)
+  # })
   
   ifsplit_obj1 <- reactive({
     fluidRow(

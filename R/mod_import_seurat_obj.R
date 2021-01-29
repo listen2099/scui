@@ -88,6 +88,17 @@ mod_import_seurat_obj_server <- function(id){
                 seurat_obj_name = seurat_obj_name
               )
               return(res)
+            }else{
+              library(Seurat)
+              seurat_obj_markers <- FindAllMarkers(seurat_obj,
+                                                   only.pos = T,
+                                                   features = VariableFeatures(seurat_obj)[1:2000])
+              res <- list(
+                seurat_obj = seurat_obj,
+                seurat_obj_markers = seurat_obj_markers,
+                seurat_obj_name = seurat_obj_name
+              )
+              return(res)
             }
           }
         }

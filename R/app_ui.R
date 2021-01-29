@@ -195,13 +195,13 @@ app_ui <- function(request) {
                    uiOutput('output_cell_table_buttom'),
                    style ='padding-left:1px; padding-right:1px; padding-top:25px'
                    )
-          ),
+          )
           # shinycssloaders::withSpinner(
           #   uiOutput('my_category_edit')
           # ),
-          shinycssloaders::withSpinner(
-            verbatimTextOutput("see_click_cluster")
-          )
+          # shinycssloaders::withSpinner(
+          #   verbatimTextOutput("see_click_cluster")
+          # )
           # shinycssloaders::withSpinner(
           #   verbatimTextOutput("monitor2")
           # )
@@ -346,7 +346,7 @@ app_ui <- function(request) {
 <p>SCUI is an open source software based on MIT license.  We do not guarantee that there will be no problems during the use of the software, but we are happy to accept bug reports and valuable suggestions.</p>
 <h2 id="contact-us">Contact Us</h2>
 <p>Github issues: <a href="https://github.com/listen2099/scui/issues">https://github.com/listen2099/scui/issues</a></p>
-<p>Email: bgi.kwei@gmail.com</p>
+<p>Email: scui.bug@gmail.com</p>
 <h2 id="mit-license">MIT License</h2>
 <p>Copyright (c) 2021 Wei Kun</p>
 <p>Permission is hereby granted, free of charge, to any person obtaining a copy

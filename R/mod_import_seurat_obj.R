@@ -31,7 +31,7 @@ mod_import_seurat_obj_server <- function(id){
       obj_list <- reactive({
         load(userFile()$datapath)
         read_env <- ls(environment())
-        if('savevalues' %in% read_env){
+        if('savevalues' %in% read_env){ # if savevalues
           if( 'SCT' %in% Assays(seurat_obj)){
             DefaultAssay(seurat_obj) <- 'SCT'
           }else{
@@ -44,14 +44,16 @@ mod_import_seurat_obj_server <- function(id){
             savevalues = savevalues
           )
           return(res)
-        }else{
+        }else{ # if no savevalues
           if('seurat_obj' %in% read_env){
+            # you seurat_obj
             for (obj in read_env) {
               if(class(environment()[[obj]]) == "Seurat"){
                 seurat_obj <- environment()[[obj]]
                 seurat_obj_name <- obj
               }
             }
+
             if( paste0(seurat_obj_name,'.markers') %in% read_env ){
               seurat_obj_markers <- environment()[[ paste0(seurat_obj_name,'.markers') ]]
               if( 'SCT' %in% Assays(seurat_obj)){
@@ -67,6 +69,7 @@ mod_import_seurat_obj_server <- function(id){
               return(res)
             }
           }else{
+            # no seurat_obj
             seurat_obj <- NULL
             seurat_obj_name <- NULL
             for (obj in read_env) {

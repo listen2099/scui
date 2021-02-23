@@ -108,7 +108,7 @@ app_ui <- function(request) {
 <h2 id="release-of-scui-v1-0-0">Release of SCUI v1.0.0</h2>
 <p>The first version of the SCUI has the following features:</p>
 <ul>
-<li><strong>CellBrowser</strong> Show the coordinate points of each cell by different categories; Customize the list of genes of interest; Customize categories and clusters; Outout figures and data table.</li>
+<li><strong>CellBrowser</strong> Show the coordinate points of each cell by different categories; Customize the list of genes of interest; Customize categories and clusters; Output figures and data table.</li>
 <li><strong>Features</strong> Explore and filter the marker gene table obtained by Seurat; Generate new marker gene table for custom clusters.</li>
 <li><strong>Heatmap</strong> Generate a heatmap of the average expression of customized genes in clusters.</li>
 <li><strong>Violin</strong> Generate the violin plot of genes of interest in clusters.</li>
@@ -117,7 +117,7 @@ app_ui <- function(request) {
 </ul>
 <p><strong>NOTE:</strong> SCUI requires 4GB ram as a minimum, it may be higher depending on the size of your data. The time elapsed for analysis was influenced by the number of cells.</p>
 '),
-          h2("Now, Let't Import Seurat Object Here:"),
+          h2("Now, Let's Import Seurat Object Here:"),
           fluidRow(
             mod_import_seurat_obj_ui("SeuratRdataFile", "User data (.Rdata format)")
           ),
@@ -188,18 +188,19 @@ app_ui <- function(request) {
             uiOutput('pick_category_all',inline = T)
           ),
           fluidRow(
-            column(width = 11,
+            column(width = 12,
                    uiOutput('pick_cluster')
-                   ),
-            column(width = 1,
-                   uiOutput('output_cell_table_buttom'),
-                   style ='padding-left:1px; padding-right:1px; padding-top:25px'
+                   )
+          ),
+          fluidRow(
+            column(width = 12,
+                   uiOutput('output_cell_table_buttom')
                    )
           )
           # shinycssloaders::withSpinner(
           #   uiOutput('my_category_edit')
           # ),
-          # shinycssloaders::withSpinner(
+          # ,shinycssloaders::withSpinner(
           #   verbatimTextOutput("see_click_cluster")
           # )
           # shinycssloaders::withSpinner(
@@ -345,7 +346,7 @@ app_ui <- function(request) {
           HTML('<h2 id="about">About</h2>
 <p>SCUI is an open source software based on MIT license.  We do not guarantee that there will be no problems during the use of the software, but we are happy to accept bug reports and valuable suggestions.</p>
 <h2 id="contact-us">Contact Us</h2>
-<p>Github issues: <a href="https://github.com/listen2099/scui/issues">https://github.com/listen2099/scui/issues</a></p>
+<p>Github issues: https://github.com/listen2099/scui/issues</p>
 <p>Email: scui.bug@gmail.com</p>
 <h2 id="mit-license">MIT License</h2>
 <p>Copyright (c) 2021 Wei Kun</p>

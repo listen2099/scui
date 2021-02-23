@@ -6,7 +6,7 @@ SCUI is a user-friendly lightweight desktop application for browsing and explori
 
 The first version of the SCUI has the following features:
 
-- **CellBrowser** Show the coordinate points of each cell by different categories; Customize the list of genes of interest; Customize categories and clusters; Outout figures and data table.
+- **CellBrowser** Show the coordinate points of each cell by different categories; Customize the list of genes of interest; Customize categories and clusters; Output figures and data table.
 - **Features** Explore and filter the marker gene table obtained by Seurat; Generate new marker gene table for custom clusters.
 - **Heatmap** Generate a heatmap of the average expression of customized genes in clusters.
 - **Violin** Generate the violin plot of genes of interest in clusters.

@@ -73,7 +73,7 @@ app_server <- function( input, output, session ) {
   })
 
   Violin_obj1 <- reactive({menuItem("Violin", tabName = "Violin", icon = icon("equalizer", lib = "glyphicon"))})
-  Violin_obj2 <- reactive({fluidRow()})
+  Violin_obj2 <- reactive({NULL})
   observe({
     if(input$tabs == 'Heatmap'){output$ViolinUI <- renderMenu({Violin_obj1()})}else{
       output$ViolinUI <- renderMenu({Violin_obj2()})
@@ -228,23 +228,83 @@ app_server <- function( input, output, session ) {
     if( !is.null(mygenelist[input$selected_features_0_rows_selected]) ){
       pick_gene <- mygenelist[input$selected_features_0_rows_selected]
       if(length(pick_gene)==1){
-        plot.data <- as.data.frame(values$seurat_obj@reductions$umap@cell.embeddings)
-        plot.data[['pick_gene']] <- as.numeric(values$seurat_obj@assays[[DefaultAssay(values$seurat_obj)]][pick_gene,])
-        barcolor <- colorRamp(c("#e0e0e0","#fddbc7","#f4a582","#d6604d","#b2182b" ))
-        if( all(plot.data[['pick_gene']] == 0) ){
-          barcolor <- '#e0e0e0'
+        if(!is.null(input$input_pick_category) && input$input_pick_category != "Sample" && input$input_pick_category %in% names(values$seurat_obj@reductions)){
+          # seurat cluster
+          plot.data <- as.data.frame(values$seurat_obj@reductions[[input$input_pick_category]]@cell.embeddings)
+          colnames(plot.data) <- c('D1','D2')
+          plot.data[['pick_gene']] <- as.numeric(values$seurat_obj@assays[[DefaultAssay(values$seurat_obj)]][pick_gene,])
+          barcolor <- colorRamp(c("#e0e0e0","#fddbc7","#f4a582","#d6604d","#b2182b" ))
+          if( all(plot.data[['pick_gene']] == 0) ){barcolor <- '#e0e0e0'}
+          p <- plot_ly(plot.data,x = ~D1,y = ~D2,text = rownames(plot.data),
+                       key = rownames(plot.data)) %>%
+            add_markers(color = ~pick_gene,size = I(2.5),
+                        colors = barcolor,
+                        type = "scatter", mode = "markers") %>%
+            colorbar(title = pick_gene) %>%
+            hide_legend() %>%
+            layout(xaxis = list(showgrid=F,zeroline=F,showticklabels=F),
+                   yaxis = list(showgrid=F,zeroline=F,showticklabels=F)) %>%
+            onRender("function(el,x){el.on('plotly_legendclick', function(){ return false; })}") %>%
+            config(modeBarButtonsToRemove = c("autoScale2d","zoomIn2d","zoomOut2d","hoverClosestCartesian", "hoverCompareCartesian"),displaylogo = FALSE,toImageButtonOptions = list(format = input$plotformat, height = input$plotheight, width = input$plotwidth,filename = paste0(pick_gene,"_exp")))
+        }else if(!is.null(input$input_pick_category) && input$input_pick_category != "Sample" && ! input$input_pick_category %in% names(values$seurat_obj@reductions)){
+          # 自定义cluster
+          
+          num <- length(values$def_cate_clu[[input$input_pick_category]])
+          colours_sample<-colorRampPalette(brewer.pal(brewer.pal.info[input$selectcolorforpoints,'maxcolors'],input$selectcolorforpoints))(num)[num:1]
+          names(colours_sample) <- names(values$def_cate_clu[[input$input_pick_category]])
+          
+          myData <- as.data.frame(values$seurat_obj@reductions$umap@cell.embeddings[,1:2])
+          myData[['pick_gene']] <- as.numeric(values$seurat_obj@assays[[DefaultAssay(values$seurat_obj)]][pick_gene,])
+          
+          pick <- input$input_pick_cluster_for_def
+          
+          plot.data <- c()
+          for (i in 1:length(pick) ) {
+            one_cluster <- pick[i]
+            cell_in_cluster <- as.character(values$def_cate_clu[[input$input_pick_category]][[one_cluster]])
+            temp <- myData[cell_in_cluster,]
+            plot.data <- rbind(plot.data,temp)
+            # p <- add_trace(p,data = temp,size = I(2.5),
+            #                type = "scatter", mode = "markers",
+            #                text = rownames(temp),
+            #                key = paste0(one_cluster,':',rownames(temp)),
+            #                color = I(colours_sample[one_cluster]),
+            #                x = ~UMAP_1,y = ~UMAP_2,
+            #                name = I(one_cluster)
+            # )
+          }
+          barcolor <- colorRamp(c("#e0e0e0","#fddbc7","#f4a582","#d6604d","#b2182b" ))
+          if( all(plot.data[['pick_gene']] == 0) ){barcolor <- '#e0e0e0'}
+          p <- plot_ly(plot.data,x = ~UMAP_1,y = ~UMAP_2,text = rownames(plot.data),
+                       key = rownames(plot.data)) %>%
+            add_markers(color = ~pick_gene,size = I(2.5),
+                        colors = barcolor,
+                        type = "scatter", mode = "markers") %>%
+            colorbar(title = pick_gene) %>%
+            hide_legend() %>%
+            layout(xaxis = list(showgrid=F,zeroline=F,showticklabels=F),
+                   yaxis = list(showgrid=F,zeroline=F,showticklabels=F)) %>%
+            onRender("function(el,x){el.on('plotly_legendclick', function(){ return false; })}") %>%
+            config(modeBarButtonsToRemove = c("autoScale2d","zoomIn2d","zoomOut2d","hoverClosestCartesian", "hoverCompareCartesian"),displaylogo = FALSE,toImageButtonOptions = list(format = input$plotformat, height = input$plotheight, width = input$plotwidth,filename = paste0(pick_gene,"_exp")))
+          
+        }else if(!is.null(input$input_pick_category) && input$input_pick_category == 'Sample'){
+          # sample
+          plot.data <- as.data.frame(values$seurat_obj@reductions$umap@cell.embeddings)
+          plot.data[['pick_gene']] <- as.numeric(values$seurat_obj@assays[[DefaultAssay(values$seurat_obj)]][pick_gene,])
+          barcolor <- colorRamp(c("#e0e0e0","#fddbc7","#f4a582","#d6604d","#b2182b" ))
+          if( all(plot.data[['pick_gene']] == 0) ){barcolor <- '#e0e0e0'}
+          p <- plot_ly(plot.data,x = ~UMAP_1,y = ~UMAP_2,text = rownames(plot.data),
+                       key = rownames(plot.data)) %>%
+            add_markers(color = ~pick_gene,size = I(2.5),
+                        colors = barcolor,
+                        type = "scatter", mode = "markers") %>%
+            colorbar(title = pick_gene) %>%
+            hide_legend() %>%
+            layout(xaxis = list(showgrid=F,zeroline=F,showticklabels=F),
+                   yaxis = list(showgrid=F,zeroline=F,showticklabels=F)) %>%
+            onRender("function(el,x){el.on('plotly_legendclick', function(){ return false; })}") %>%
+            config(modeBarButtonsToRemove = c("autoScale2d","zoomIn2d","zoomOut2d","hoverClosestCartesian", "hoverCompareCartesian"),displaylogo = FALSE,toImageButtonOptions = list(format = input$plotformat, height = input$plotheight, width = input$plotwidth,filename = paste0(pick_gene,"_exp")))
         }
-        p <- plot_ly(plot.data,x = ~UMAP_1,y = ~UMAP_2,text = rownames(plot.data),
-                     key = rownames(plot.data)) %>%
-          add_markers(color = ~pick_gene,size = I(2.5),
-                      colors = barcolor,
-                      type = "scatter", mode = "markers") %>%
-          colorbar(title = pick_gene) %>%
-          hide_legend() %>%
-          layout(xaxis = list(showgrid=F,zeroline=F,showticklabels=F),
-                 yaxis = list(showgrid=F,zeroline=F,showticklabels=F)) %>%
-          onRender("function(el,x){el.on('plotly_legendclick', function(){ return false; })}") %>%
-          config(modeBarButtonsToRemove = c("autoScale2d","zoomIn2d","zoomOut2d","hoverClosestCartesian", "hoverCompareCartesian"),displaylogo = FALSE,toImageButtonOptions = list(format = input$plotformat, height = input$plotheight, width = input$plotwidth,filename = paste0(pick_gene,"_exp")))
       }else{
         return(NULL)
       }
@@ -438,6 +498,7 @@ app_server <- function( input, output, session ) {
     }
   })
   
+  
   saveprojectbutton_obj <- reactive({
     downloadButton(
       outputId = "output_scui_obj",
@@ -461,12 +522,26 @@ app_server <- function( input, output, session ) {
       (!is.null(input$input_pick_category) && input$input_pick_category != "Sample" && ! input$input_pick_category %in% names(values$seurat_obj@reductions))
     ){
       if( length(input$selected_features_0_rows_selected) == 0 ){
-        downloadButton(
-          outputId = "output_cell_table",
-          label = "Output",
-          style = "unite",
-          width = "100%"
-        )      }else{
+        fluidRow(
+          column(width = 6,
+                 downloadButton(
+                   outputId = "output_cell_table",
+                   label = "Output cell table",
+                   width = "100%"
+                 ),
+                 style ='padding-left:15px; padding-right:1px;'
+                 ),
+          column(width = 6,
+                 downloadButton(
+                   outputId = "output_this_obj",
+                   label = "Output seurat object",
+                   style = "color: white; background-color: #1558A0;border-color: #1558A0",
+                   width = "100%"
+                 ),
+                 style ='padding-left:15px; padding-right:1px;'
+                 )        
+        )
+        }else{
         return(NULL)
       }
     }else{
@@ -475,8 +550,7 @@ app_server <- function( input, output, session ) {
   })
   
   output$output_cell_table <- downloadHandler(
-    filename = function(){
-      'scui_cell_meta_table.csv'},
+    filename = function(){'scui_cell_meta_table.csv'},
     content = function(con){
       r2 <- celltable_obj2()
       r4 <- celltable_obj4()
@@ -496,6 +570,38 @@ app_server <- function( input, output, session ) {
       write.csv(res,con,quote = FALSE,row.names = TRUE,col.names = TRUE)
     }
   )
+  
+  output$output_this_obj <- downloadHandler(
+    filename = function(){'scui_seurat_obj.Rdata'},
+    content = function(con){
+      res <- NULL
+      if( length(input$selected_features_0_rows_selected) == 1 ){
+        if( !is.null(input$ifsplit) && input$ifsplit == T ){}else{}
+      }else{
+        if(!is.null(input$input_pick_category) && input$input_pick_category == 'Sample'){
+        }
+        if(!is.null(input$input_pick_category) && input$input_pick_category != "Sample" && input$input_pick_category %in% names(values$seurat_obj@reductions)){
+          res <- values$seurat_obj
+        }
+        if(!is.null(input$input_pick_category) && input$input_pick_category != "Sample" && ! input$input_pick_category %in% names(values$seurat_obj@reductions)){
+          # seurat subset FINDPOS
+          cluster_list <- values$def_cate_clu[[input$input_pick_category]]
+          cells <- as.character(unlist(cluster_list))
+          cluster_name <- NULL
+          for (i in 1:length(cluster_list)) {cluster_name <- c(cluster_name,rep(names(cluster_list[i]),length(cluster_list[[i]])))}
+          temp_obj <- values$seurat_obj[,cells]
+          new_ident <- factor(cluster_name, levels = names(cluster_list), order = F)
+          names(new_ident) <- cells
+          Idents(temp_obj) <- new_ident
+          # new ident
+          res <- temp_obj
+        }
+      }
+      seurat_this_obj <- res
+      save(seurat_this_obj,file = con)
+    }
+  )
+  
   
   output$output_scui_obj <- downloadHandler(
     filename = function(){
@@ -565,7 +671,11 @@ app_server <- function( input, output, session ) {
   # })
   
   # output$see_click_cluster <- renderPrint({
-  #   # print(values$def_cate_clu)
+  #   print(values$def_cate_clu)
+  #   print(names(values$def_cate_clu))
+  #   print(input$selectcategory)
+  #   print(input$selectcluster)
+  #   
   #   # print(length(unlist(values$def_cate_clu)))
   #   # print(event_data("plotly_selected",priority = "input"))
   #   # print(values$edit_cluster_name_list)
@@ -661,26 +771,42 @@ app_server <- function( input, output, session ) {
   observeEvent(input$comfirmeditclustername,{
     if( ! is.null(input$editclustername) && input$editclustername != ''){
       # editname
+      
       if(!is.null(input$input_pick_category) && input$input_pick_category != "Sample" && ! input$input_pick_category %in% names(values$seurat_obj@reductions)){
+        # combine repli
         ori_name <- names( values$def_cate_clu[[values$click_res$click_category_name]] )
-        ori_name[which(ori_name == values$click_res$click_cluster_name)] <- input$editclustername
-        names( values$def_cate_clu[[values$click_res$click_category_name]] ) <- ori_name
+        if(input$editclustername %in% ori_name){
+          pick_cell <- values$def_cate_clu[[values$click_res$click_category_name]][[values$click_res$click_cluster_name]]
+          ori_cell <- values$def_cate_clu[[values$click_res$click_category_name]][[input$editclustername]]
+          values$def_cate_clu[[values$click_res$click_category_name]][[values$click_res$click_cluster_name]] <- NULL
+          values$def_cate_clu[[values$click_res$click_category_name]][[input$editclustername]] <- union(pick_cell,ori_cell)
+        }else{
+          ori_name <- names( values$def_cate_clu[[values$click_res$click_category_name]] )
+          ori_name[which(ori_name == values$click_res$click_cluster_name)] <- input$editclustername
+          names( values$def_cate_clu[[values$click_res$click_category_name]] ) <- ori_name
+        }
       }
       
       #  seurat category
       if(!is.null(input$input_pick_category) && input$input_pick_category != "Sample" && input$input_pick_category %in% names(values$seurat_obj@reductions)){
         temp <- as.character(Idents(values$seurat_obj))
         temp_levels <- levels(Idents(values$seurat_obj))
-        
-        temp[which(temp == values$click_res$click_cluster_name)] <- input$editclustername
-        temp_levels[which(temp_levels == values$click_res$click_cluster_name)] <- input$editclustername
-
-        new_ident <- factor(temp, levels = temp_levels, order = F)
-
-        names(new_ident) <- names(Idents(values$seurat_obj))
-        Idents(values$seurat_obj) <- new_ident
-        
-        values$edit_cluster_name_list <- rbind(values$edit_cluster_name_list,c(values$click_res$click_cluster_name,input$editclustername))
+        if(input$editclustername %in% temp_levels){
+          # combine repli
+          temp[which(temp == values$click_res$click_cluster_name)] <- input$editclustername
+          temp_levels <- temp_levels[-which(temp_levels == values$click_res$click_cluster_name)]
+          new_ident <- factor(temp, levels = temp_levels, order = F)
+          names(new_ident) <- names(Idents(values$seurat_obj))
+          Idents(values$seurat_obj) <- new_ident
+          values$edit_cluster_name_list <- rbind(values$edit_cluster_name_list,c(values$click_res$click_cluster_name,input$editclustername))
+        }else{
+          temp[which(temp == values$click_res$click_cluster_name)] <- input$editclustername
+          temp_levels[which(temp_levels == values$click_res$click_cluster_name)] <- input$editclustername
+          new_ident <- factor(temp, levels = temp_levels, order = F)
+          names(new_ident) <- names(Idents(values$seurat_obj))
+          Idents(values$seurat_obj) <- new_ident
+          values$edit_cluster_name_list <- rbind(values$edit_cluster_name_list,c(values$click_res$click_cluster_name,input$editclustername))
+        }
       }
       
       # sample
@@ -692,6 +818,7 @@ app_server <- function( input, output, session ) {
     }
     output$editnamemodel <- renderUI({editnamemodel_obj2()})
   })
+  
   observeEvent(input$delpickcluster,{
     values$def_cate_clu[[values$click_res$click_category_name]][[values$click_res$click_cluster_name]] <- NULL
     output$editnamemodel <- renderUI({editnamemodel_obj2()})
@@ -813,7 +940,6 @@ app_server <- function( input, output, session ) {
     r3 <- cellmap_obj3()
     r4 <- cellmap_obj4()
     r5 <- cellmap_obj5()
-    
     if( length(input$selected_features_0_rows_selected) == 1 ){
       if( !is.null(input$ifsplit) && input$ifsplit == T ){
         return(r5)
@@ -974,7 +1100,7 @@ app_server <- function( input, output, session ) {
   
   observeEvent(input$confirmdef,{
     
-    if(!is.null(input$selectcategory) && !is.null(input$selectcluster)){
+    if(!is.null(input$selectcategory) && !is.null(input$selectcluster) && input$selectcategory != '' && input$selectcluster != ''){
       
       split_res <- unlist( strsplit(as.character(event_data("plotly_selected")$key),':'))
       pick_cell <- split_res[seq(2,length(split_res),2)]
@@ -994,9 +1120,21 @@ app_server <- function( input, output, session ) {
           }
         }
       }
-      
     }
     
+    cate_names <- names(values$def_cate_clu)
+    for (one_cate_name in cate_names) {
+      clu_names <- names(values$def_cate_clu[[one_cate_name]])
+      for (one_clu_name in clu_names) {
+        if(values$def_cate_clu[[one_cate_name]][[one_clu_name]] == 'placeholder'){
+          values$def_cate_clu[[one_cate_name]][[one_clu_name]] <- NULL
+        }
+      }
+    }
+    
+    # cate_names <- names(values$def_cate_clu)
+    # values$def_cate_clu[[which(cate_names == '')]] <- NULL
+
   })
   
   observeEvent(input$closedef,{
@@ -1109,14 +1247,14 @@ app_server <- function( input, output, session ) {
   })
 
   observeEvent(input$addcategory,{
-    if(!is.null(input$categorynametxt)){
+    if(!is.null(input$categorynametxt) && input$categorynametxt != ''){
       values$def_cate_clu[[input$categorynametxt]] <- list()
     }
   })
-
+#
   observeEvent(input$addcluster,{
-    if(!is.null(input$clusternametxt)){
-      values$def_cate_clu[[input$selectcategory]][[input$clusternametxt]] <- 'N'
+    if(!is.null(input$clusternametxt) && input$clusternametxt != '' && !is.null(input$selectcategory) && input$selectcategory != '' ){
+      values$def_cate_clu[[input$selectcategory]][[input$clusternametxt]] <- 'placeholder'
     }
   })
 
